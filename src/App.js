@@ -221,56 +221,60 @@ function App() {
                 </Box>
               )}
             </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" gutterBottom>
-                {t("Result 1")}
-              </Typography>
-              {text.map((pageText, index) => {
-                if (index % 2 === 0) {
-                  i++;
-                  return (
-                    <TextField
-                      key={index}
-                      label={`${t("page")} ${i}`}
-                      multiline
-                      rows={10}
-                      value={pageText}
-                      variant="outlined"
-                      fullWidth
-                      readOnly
-                      style={{ marginBottom: "20px" }}
-                    />
-                  );
-                } else {
-                  return null;
-                }
-              })}
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="h6" gutterBottom>
-                {t("Result 2")}
-              </Typography>
-              {text.map((pageText, index) => {
-                if (index % 2 !== 0) {
-                  j++;
-                  return (
-                    <TextField
-                      key={index}
-                      label={`${t("page")} ${j}`}
-                      multiline
-                      rows={10}
-                      value={pageText}
-                      variant="outlined"
-                      fullWidth
-                      readOnly
-                      style={{ marginBottom: "20px" }}
-                    />
-                  );
-                } else {
-                  return null;
-                }
-              })}
-            </Grid>
+            {text.length !== 0 && (
+              <>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="h6" gutterBottom>
+                    {t("Result 1")}
+                  </Typography>
+                  {text.map((pageText, index) => {
+                    if (index % 2 === 0) {
+                      i++;
+                      return (
+                        <TextField
+                          key={index}
+                          label={`${t("page")} ${i}`}
+                          multiline
+                          rows={10}
+                          value={pageText}
+                          variant="outlined"
+                          fullWidth
+                          readOnly
+                          style={{ marginBottom: "20px" }}
+                        />
+                      );
+                    } else {
+                      return null;
+                    }
+                  })}
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="h6" gutterBottom>
+                    {t("Result 2")}
+                  </Typography>
+                  {text.map((pageText, index) => {
+                    if (index % 2 !== 0) {
+                      j++;
+                      return (
+                        <TextField
+                          key={index}
+                          label={`${t("page")} ${j}`}
+                          multiline
+                          rows={10}
+                          value={pageText}
+                          variant="outlined"
+                          fullWidth
+                          readOnly
+                          style={{ marginBottom: "20px" }}
+                        />
+                      );
+                    } else {
+                      return null;
+                    }
+                  })}
+                </Grid>
+              </>
+            )}
           </Grid>
         )}
       </Box>
