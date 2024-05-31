@@ -18,6 +18,7 @@ import * as pdfjsLib from "pdfjs-dist";
 import "pdfjs-dist/build/pdf.worker.entry";
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
 import Tesseract from "tesseract.js";
 import i18n from "./i18n";
@@ -106,18 +107,6 @@ function App() {
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-  // Google AdSense 광고 스크립트 로드
-  // useEffect(() => {
-  //   const script = document.createElement("script");
-  //   script.async = true;
-  //   script.src =
-  //     "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
-  //   script.onload = () => {
-  //     (window.adsbygoogle = window.adsbygoogle || []).push({});
-  //   };
-  //   document.body.appendChild(script);
-  // }, []);
-
   return (
     <Container maxWidth="md">
       <Box
@@ -128,6 +117,9 @@ function App() {
         minHeight="100vh"
         textAlign="center"
       >
+        <Typography variant="h3" gutterBottom>
+          {t("title")}
+        </Typography>
         <FormControl
           variant="outlined"
           style={{ marginBottom: "20px", width: "200px" }}
@@ -144,9 +136,17 @@ function App() {
             <MenuItem value="ko">한국어</MenuItem>
           </Select>
         </FormControl>
-        <Typography variant="h3" gutterBottom>
-          {t("title")}
-        </Typography>
+        <Helmet>
+          <title>{t("title")}</title>
+          <meta
+            name="description"
+            content="Extract text from PDF files using this simple online tool."
+          />
+          <meta
+            name="keywords"
+            content="PDF text extractor, extract text from PDF, PDF OCR, online PDF tool"
+          />
+        </Helmet>
         <Box
           {...getRootProps()}
           border="2px dashed #000"
@@ -210,16 +210,6 @@ function App() {
             </Grid>
           </Grid>
         )}
-        {/* {fileUrl && (
-          <Box marginTop="20px">
-            <ins className="adsbygoogle"
-              style={{ display: "block" }}
-              data-ad-client="YOUR_ADSENSE_CLIENT_ID"
-              data-ad-slot="YOUR_ADSENSE_SLOT_ID"
-              data-ad-format="auto"
-              data-full-width-responsive="true"></ins>
-          </Box>
-        )} */}
       </Box>
     </Container>
   );
