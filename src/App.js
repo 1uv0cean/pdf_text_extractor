@@ -25,7 +25,7 @@ import i18n from "./i18n";
 
 function App() {
   const { t } = useTranslation();
-  const [text, setText] = useState("");
+  const [text, setText] = useState([]);
   const [fileUrl, setFileUrl] = useState(null);
   const [fileName, setFileName] = useState("");
   const [error, setError] = useState("");
@@ -36,6 +36,23 @@ function App() {
     const selectedLanguage = event.target.value;
     setLanguage(selectedLanguage);
     i18n.changeLanguage(selectedLanguage);
+  };
+
+  const preprocessImage = (canvas) => {
+    const ctx = canvas.getContext("2d");
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    // 이미지 전처리: 흑백 변환 및 대비 증가
+    for (let i = 0; i < data.length; i += 4) {
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      const contrast = avg > 128 ? 255 : 0;
+      data[i] = contrast;
+      data[i + 1] = contrast;
+      data[i + 2] = contrast;
+    }
+
+    ctx.putImageData(imageData, 0, 0);
   };
 
   const onDrop = async (acceptedFiles) => {
@@ -59,7 +76,7 @@ function App() {
 
       loadingTask.promise
         .then(async (pdf) => {
-          let extractedText = "";
+          const extractedTexts = [];
 
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
@@ -67,7 +84,7 @@ function App() {
             const pageText = textContent.items
               .map((item) => item.str)
               .join(" ");
-            extractedText += pageText + "\n";
+            extractedTexts.push(`Page ${i}: \n${pageText}`);
 
             const viewport = page.getViewport({ scale: 1 });
             const canvas = document.createElement("canvas");
@@ -80,20 +97,24 @@ function App() {
               viewport: viewport,
             }).promise;
 
+            preprocessImage(canvas);
             const dataURL = canvas.toDataURL();
 
             // Perform OCR on the image with multiple languages
             const result = await Tesseract.recognize(
               dataURL,
-              language === "ko" ? "kor" : "eng", // Specify the language based on the user's selected language
+              language === "ko" ? "kor" : "eng",
               {
                 logger: (m) => console.log(m),
+                tessedit_char_whitelist:
+                  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789가나다라마바사아자차카타파하",
+                preserve_interword_spaces: 1,
               }
             );
-            extractedText += result.data.text + "\n";
+            extractedTexts.push(result.data.text);
           }
 
-          setText(extractedText);
+          setText(extractedTexts);
           setIsLoading(false);
         })
         .catch((err) => {
@@ -198,15 +219,19 @@ function App() {
               )}
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField
-                label={t("extractedText")}
-                multiline
-                rows={30}
-                value={text}
-                variant="outlined"
-                fullWidth
-                readOnly
-              />
+              {text.map((pageText, index) => (
+                <TextField
+                  key={index}
+                  label={`${t("extractedText")} ${index + 1}`}
+                  multiline
+                  rows={10}
+                  value={pageText}
+                  variant="outlined"
+                  fullWidth
+                  readOnly
+                  style={{ marginBottom: "20px" }}
+                />
+              ))}
             </Grid>
           </Grid>
         )}
