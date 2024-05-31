@@ -21,6 +21,7 @@ import { useDropzone } from "react-dropzone";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
 import Tesseract from "tesseract.js";
+import { WHITE_LIST } from "./constants/whiteList";
 import i18n from "./i18n";
 
 function App() {
@@ -31,6 +32,8 @@ function App() {
   const [error, setError] = useState("");
   const [language, setLanguage] = useState(i18n.language);
   const [isLoading, setIsLoading] = useState(false);
+  let i = 0;
+  let j = 0;
 
   const handleLanguageChange = (event) => {
     const selectedLanguage = event.target.value;
@@ -84,7 +87,8 @@ function App() {
             const pageText = textContent.items
               .map((item) => item.str)
               .join(" ");
-            extractedTexts.push(`Page ${i}: \n${pageText}`);
+
+            extractedTexts.push(`${pageText}`);
 
             const viewport = page.getViewport({ scale: 1 });
             const canvas = document.createElement("canvas");
@@ -106,8 +110,7 @@ function App() {
               language === "ko" ? "kor" : "eng",
               {
                 logger: (m) => console.log(m),
-                tessedit_char_whitelist:
-                  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789가나다라마바사아자차카타파하",
+                tessedit_char_whitelist: WHITE_LIST,
                 preserve_interword_spaces: 1,
               }
             );
@@ -209,7 +212,7 @@ function App() {
           </Box>
         ) : (
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               {fileUrl && (
                 <Box border="1px solid #ccc" height="720px" overflow="auto">
                   <Worker workerUrl="https://unpkg.com/pdfjs-dist@2.6.347/build/pdf.worker.min.js">
@@ -218,20 +221,55 @@ function App() {
                 </Box>
               )}
             </Grid>
-            <Grid item xs={12} md={6}>
-              {text.map((pageText, index) => (
-                <TextField
-                  key={index}
-                  label={`${t("extractedText")} ${index + 1}`}
-                  multiline
-                  rows={10}
-                  value={pageText}
-                  variant="outlined"
-                  fullWidth
-                  readOnly
-                  style={{ marginBottom: "20px" }}
-                />
-              ))}
+            <Grid item xs={12} md={4}>
+              <Typography variant="h6" gutterBottom>
+                {t("Result 1")}
+              </Typography>
+              {text.map((pageText, index) => {
+                if (index % 2 === 0) {
+                  i++;
+                  return (
+                    <TextField
+                      key={index}
+                      label={`${t("page")} ${i}`}
+                      multiline
+                      rows={10}
+                      value={pageText}
+                      variant="outlined"
+                      fullWidth
+                      readOnly
+                      style={{ marginBottom: "20px" }}
+                    />
+                  );
+                } else {
+                  return null;
+                }
+              })}
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="h6" gutterBottom>
+                {t("Result 2")}
+              </Typography>
+              {text.map((pageText, index) => {
+                if (index % 2 !== 0) {
+                  j++;
+                  return (
+                    <TextField
+                      key={index}
+                      label={`${t("page")} ${j}`}
+                      multiline
+                      rows={10}
+                      value={pageText}
+                      variant="outlined"
+                      fullWidth
+                      readOnly
+                      style={{ marginBottom: "20px" }}
+                    />
+                  );
+                } else {
+                  return null;
+                }
+              })}
             </Grid>
           </Grid>
         )}
