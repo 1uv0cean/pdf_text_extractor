@@ -2,8 +2,13 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import {
   Box,
   Button,
+  CircularProgress,
   Container,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -13,24 +18,37 @@ import * as pdfjsLib from "pdfjs-dist";
 import "pdfjs-dist/build/pdf.worker.entry";
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { useTranslation } from "react-i18next";
+import Tesseract from "tesseract.js";
+import i18n from "./i18n";
 
 function App() {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   const [fileUrl, setFileUrl] = useState(null);
   const [fileName, setFileName] = useState("");
   const [error, setError] = useState("");
+  const [language, setLanguage] = useState(i18n.language);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLanguageChange = (event) => {
+    const selectedLanguage = event.target.value;
+    setLanguage(selectedLanguage);
+    i18n.changeLanguage(selectedLanguage);
+  };
 
   const onDrop = async (acceptedFiles) => {
     const file = acceptedFiles[0];
 
     if (file.type !== "application/pdf") {
-      setError("Only PDF files are allowed.");
+      setError(t("error"));
       return;
     }
 
     setError("");
     setFileName(file.name);
     setFileUrl(URL.createObjectURL(file));
+    setIsLoading(true);
 
     const reader = new FileReader();
 
@@ -49,12 +67,37 @@ function App() {
               .map((item) => item.str)
               .join(" ");
             extractedText += pageText + "\n";
+
+            const viewport = page.getViewport({ scale: 1 });
+            const canvas = document.createElement("canvas");
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const context = canvas.getContext("2d");
+
+            await page.render({
+              canvasContext: context,
+              viewport: viewport,
+            }).promise;
+
+            const dataURL = canvas.toDataURL();
+
+            // Perform OCR on the image with multiple languages
+            const result = await Tesseract.recognize(
+              dataURL,
+              language === "ko" ? "kor" : "eng", // Specify the language based on the user's selected language
+              {
+                logger: (m) => console.log(m),
+              }
+            );
+            extractedText += result.data.text + "\n";
           }
 
           setText(extractedText);
+          setIsLoading(false);
         })
         .catch((err) => {
           console.error("Error loading PDF:", err);
+          setIsLoading(false);
         });
     };
 
@@ -62,6 +105,18 @@ function App() {
   };
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+  // Google AdSense 광고 스크립트 로드
+  // useEffect(() => {
+  //   const script = document.createElement("script");
+  //   script.async = true;
+  //   script.src =
+  //     "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
+  //   script.onload = () => {
+  //     (window.adsbygoogle = window.adsbygoogle || []).push({});
+  //   };
+  //   document.body.appendChild(script);
+  // }, []);
 
   return (
     <Container maxWidth="md">
@@ -73,8 +128,24 @@ function App() {
         minHeight="100vh"
         textAlign="center"
       >
+        <FormControl
+          variant="outlined"
+          style={{ marginBottom: "20px", width: "200px" }}
+        >
+          <InputLabel id="language-select-label">{t("language")}</InputLabel>
+          <Select
+            labelId="language-select-label"
+            id="language-select"
+            value={language}
+            onChange={handleLanguageChange}
+            label={t("language")}
+          >
+            <MenuItem value="en">English</MenuItem>
+            <MenuItem value="ko">한국어</MenuItem>
+          </Select>
+        </FormControl>
         <Typography variant="h3" gutterBottom>
-          PDF Text Extractor
+          {t("title")}
         </Typography>
         <Box
           {...getRootProps()}
@@ -90,40 +161,65 @@ function App() {
           <input {...getInputProps()} />
           <CloudUploadIcon style={{ fontSize: "50px", color: "#3f51b5" }} />
           <Typography variant="body1" gutterBottom>
-            Drag & drop a PDF file here, or click to select one
+            {t("dragAndDrop")}
           </Typography>
           <Button variant="contained" color="primary">
-            Select PDF File
+            {t("selectPDF")}
           </Button>
           {error && <Typography color="error">{error}</Typography>}
           {fileName && (
             <Typography variant="body2" gutterBottom>
-              Uploaded file: {fileName}
+              {t("uploadedFile")} {fileName}
             </Typography>
           )}
         </Box>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            {fileUrl && (
-              <Box border="1px solid #ccc" height="490px" overflow="auto">
-                <Worker workerUrl="https://unpkg.com/pdfjs-dist@2.6.347/build/pdf.worker.min.js">
-                  <Viewer fileUrl={fileUrl} />
-                </Worker>
-              </Box>
-            )}
+        {isLoading ? (
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            minHeight="200px"
+          >
+            <CircularProgress />
+            <Typography variant="body1" style={{ marginTop: "20px" }}>
+              {t("loading")}
+            </Typography>
+          </Box>
+        ) : (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              {fileUrl && (
+                <Box border="1px solid #ccc" height="720px" overflow="auto">
+                  <Worker workerUrl="https://unpkg.com/pdfjs-dist@2.6.347/build/pdf.worker.min.js">
+                    <Viewer fileUrl={fileUrl} />
+                  </Worker>
+                </Box>
+              )}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label={t("extractedText")}
+                multiline
+                rows={30}
+                value={text}
+                variant="outlined"
+                fullWidth
+                readOnly
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              label="Extracted Text"
-              multiline
-              rows={20}
-              value={text}
-              variant="outlined"
-              fullWidth
-              readOnly
-            />
-          </Grid>
-        </Grid>
+        )}
+        {/* {fileUrl && (
+          <Box marginTop="20px">
+            <ins className="adsbygoogle"
+              style={{ display: "block" }}
+              data-ad-client="YOUR_ADSENSE_CLIENT_ID"
+              data-ad-slot="YOUR_ADSENSE_SLOT_ID"
+              data-ad-format="auto"
+              data-full-width-responsive="true"></ins>
+          </Box>
+        )} */}
       </Box>
     </Container>
   );
