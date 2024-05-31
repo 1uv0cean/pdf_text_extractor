@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { Viewer, Worker } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
+import { Analytics } from "@vercel/analytics/react";
 import * as pdfjsLib from "pdfjs-dist";
 import "pdfjs-dist/build/pdf.worker.entry";
 import React, { useState } from "react";
@@ -171,6 +172,7 @@ function App() {
             content="PDF text extractor, extract text from PDF, PDF OCR, online PDF tool"
           />
         </Helmet>
+        <Analytics />
         <Box
           {...getRootProps()}
           border="2px dashed #000"
