@@ -21,8 +21,7 @@ import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
-import Tesseract from "tesseract.js";
-import { WHITE_LIST } from "./constants/whiteList";
+import FAQ from "./components/FAQ";
 import i18n from "./i18n";
 
 function App() {
@@ -106,16 +105,16 @@ function App() {
             const dataURL = canvas.toDataURL();
 
             // Perform OCR on the image with multiple languages
-            const result = await Tesseract.recognize(
-              dataURL,
-              language === "ko" ? "kor" : "eng",
-              {
-                logger: (m) => console.log(m),
-                tessedit_char_whitelist: WHITE_LIST,
-                preserve_interword_spaces: 1,
-              }
-            );
-            extractedTexts.push(result.data.text);
+            // const result = await Tesseract.recognize(
+            //   dataURL,
+            //   language === "ko" ? "kor" : "eng",
+            //   {
+            //     logger: (m) => console.log(m),
+            //     tessedit_char_whitelist: WHITE_LIST,
+            //     preserve_interword_spaces: 1,
+            //   }
+            // );
+            // extractedTexts.push(result.data.text);
           }
 
           setText(extractedTexts);
@@ -225,32 +224,32 @@ function App() {
             </Grid>
             {text.length !== 0 && (
               <>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={8}>
                   <Typography variant="h6" gutterBottom>
-                    {t("Result 1")}
+                    {t("Result")}
                   </Typography>
                   {text.map((pageText, index) => {
-                    if (index % 2 === 0) {
-                      i++;
-                      return (
-                        <TextField
-                          key={index}
-                          label={`${t("page")} ${i}`}
-                          multiline
-                          rows={10}
-                          value={pageText}
-                          variant="outlined"
-                          fullWidth
-                          readOnly
-                          style={{ marginBottom: "20px" }}
-                        />
-                      );
-                    } else {
-                      return null;
-                    }
+                    // if (index % 2 === 0) {
+                    i++;
+                    return (
+                      <TextField
+                        key={index}
+                        label={`${t("page")} ${i}`}
+                        multiline
+                        rows={10}
+                        value={pageText}
+                        variant="outlined"
+                        fullWidth
+                        readOnly
+                        style={{ marginBottom: "20px" }}
+                      />
+                    );
+                    // } else {
+                    //   return null;
+                    // }
                   })}
                 </Grid>
-                <Grid item xs={12} md={4}>
+                {/* <Grid item xs={12} md={4}>
                   <Typography variant="h6" gutterBottom>
                     {t("Result 2")}
                   </Typography>
@@ -274,11 +273,12 @@ function App() {
                       return null;
                     }
                   })}
-                </Grid>
+                </Grid> */}
               </>
             )}
           </Grid>
         )}
+        <FAQ />
       </Box>
     </Container>
   );
